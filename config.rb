@@ -1,7 +1,7 @@
 #Credentials
-GIT_HUB_TOKEN = "paste github token here"
-JIRA_USER_NAME = "paste jira username here (no email address)"
-JIRA_PASSWORD = "paste jira pw here"
+GIT_HUB_TOKEN = "paste github api token here"
+JIRA_USER_NAME = "jira username - not email"
+JIRA_PASSWORD = "jira password"
 
 #Jira Transition IDs
 QA_PASSED_ID = "91"
