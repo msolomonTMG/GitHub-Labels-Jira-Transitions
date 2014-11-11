@@ -27,9 +27,13 @@ post '/payload' do
 		actionUserURLauth = actionUserURL.insert(8,GIT_HUB_TOKEN+':@')
 		actionUserInfo = JSON.parse(RestClient.get(actionUserURLauth))
 		actionUserEmail = actionUserInfo["email"]
-		actionJiraName = actionUserEmail.split('@')[0]
-		actionJiraNameComment = actionJiraName.insert(0, "[~") + "]"
-		
+		if actionUserEmail.split('@')[1] != "thrillist.com"
+			actionUserHTMLURL = push["sender"]["html_url"]
+			actionJiraNameComment = "["+actionUser+"|"+actionUserHTMLURL+"]"
+		else
+			actionJiraName = actionUserEmail.split('@')[0]
+			actionJiraNameComment = actionJiraName.insert(0, "[~") + "]"
+		end
 		#Loop through all of the tickets in the PR title
 		#Decide what to do to each ticket depending on what labels the PR has
 		i = 0;
