@@ -60,14 +60,14 @@ post '/payload' do
 					#this issue has been reviewed and qa'ed. we should move it to deploy ready
 					puts "\n#{actionUser} labeled pull request: #{pullTitle} with #{currentLabel}."
 					#Reviewed command: 
-					system "curl -D- -u #{JIRA_USER_NAME}:#{JIRA_PASSWORD} -X POST --data '{\"update\": {\"comment\": [{\"add\": {\"body\": \"Code review passed by #{actionJiraNameComment}\"}}]}, \"transition\": {\"id\": \"#{REVIEW_PASSED_ID}\"}}' -H \"Content-Type: application/json\" https://thrillistmediagroup.atlassian.net/rest/api/latest/issue/#{jiraKey}/transitions"
+					system "curl -D- -u #{JIRA_USER_NAME}:#{JIRA_PASSWORD} -X POST --data '{\"update\": {\"comment\": [{\"add\": {\"body\": \"Code review passed by #{actionJiraNameComment} !http://www.devart.com/images/products/logos/large/review-assistant.png!\"}}]}, \"transition\": {\"id\": \"#{REVIEW_PASSED_ID}\"}}' -H \"Content-Type: application/json\" https://thrillistmediagroup.atlassian.net/rest/api/latest/issue/#{jiraKey}/transitions"
 					#Deploy Ready command: 
 					system "curl -D- -u #{JIRA_USER_NAME}:#{JIRA_PASSWORD} -X POST --data '{\"update\": {\"comment\": [{\"add\": {\"body\": \"Ready to deploy\"}}]}, \"transition\": {\"id\": \"#{DEPLOY_READY_ID}\"}}' -H \"Content-Type: application/json\" https://thrillistmediagroup.atlassian.net/rest/api/latest/issue/#{jiraKey}/transitions"
 				else
 					#this issue has not been qa'ed yet so we should just say that its been reviewed
 					puts "\n#{actionUser} labeled pull request: #{pullTitle} with #{currentLabel}." 
 					#Reviewed command: 
-					system "curl -D- -u #{JIRA_USER_NAME}:#{JIRA_PASSWORD} -X POST --data '{\"update\": {\"comment\": [{ \"add\": {\"body\": \"Code review passed by #{actionJiraNameComment}\"} }]}, \"transition\": {\"id\": \"#{REVIEW_PASSED_ID}\"}}' -H \"Content-Type: application/json\" https://thrillistmediagroup.atlassian.net/rest/api/latest/issue/#{jiraKey}/transitions"
+					system "curl -D- -u #{JIRA_USER_NAME}:#{JIRA_PASSWORD} -X POST --data '{\"update\": {\"comment\": [{ \"add\": {\"body\": \"Code review passed by #{actionJiraNameComment} !http://www.devart.com/images/products/logos/large/review-assistant.png!\"} }]}, \"transition\": {\"id\": \"#{REVIEW_PASSED_ID}\"}}' -H \"Content-Type: application/json\" https://thrillistmediagroup.atlassian.net/rest/api/latest/issue/#{jiraKey}/transitions"
 				end
 			else
 				puts "\n#{actionUser} labeled pull request: #{pullTitle} with #{currentLabel}." 
