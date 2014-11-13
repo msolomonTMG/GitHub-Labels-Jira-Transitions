@@ -27,6 +27,9 @@ post '/payload' do
 		actionUserURLauth = actionUserURL.insert(8,GIT_HUB_TOKEN+':@')
 		actionUserInfo = JSON.parse(RestClient.get(actionUserURLauth))
 		actionUserEmail = actionUserInfo["email"]
+		
+		#if user uses thrillist email, use everything before @ as the jira name
+		#if not, use the git hub name and link that
 		if actionUserEmail.split('@')[1] != "thrillist.com"
 			actionUserHTMLURL = push["sender"]["html_url"]
 			actionJiraNameComment = "["+actionUser+"|"+actionUserHTMLURL+"]"
