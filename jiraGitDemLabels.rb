@@ -30,13 +30,14 @@ post '/payload' do
 		
 		#if user uses thrillist email, use everything before @ as the jira name
 		#if not, use the git hub name and link that
-		if actionUserEmail.split('@')[1] != "thrillist.com"
-			actionUserHTMLURL = push["sender"]["html_url"]
-			actionJiraNameComment = "["+actionUser+"|"+actionUserHTMLURL+"]"
-		else
+		if actionUserEmail.split('@')[1] == "thrillist.com"
 			actionJiraName = actionUserEmail.split('@')[0]
 			actionJiraNameComment = actionJiraName.insert(0, "[~") + "]"
+		else
+			actionUserHTMLURL = push["sender"]["html_url"]
+			actionJiraNameComment = "["+actionUser+"|"+actionUserHTMLURL+"]"
 		end
+
 		#Loop through all of the tickets in the PR title
 		#Decide what to do to each ticket depending on what labels the PR has
 		i = 0;
