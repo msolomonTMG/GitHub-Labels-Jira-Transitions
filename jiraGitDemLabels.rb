@@ -1,7 +1,7 @@
 # Author: Mike Solomon
 # This app uses some terrible programming practices to flip Jira statuses
 # based on GitHub labels on corresponding pull requests
-# new comment
+# 
 
 require 'sinatra'
 require 'json'
@@ -9,14 +9,16 @@ require 'rest-client'
 require './config.rb'
 
 post '/payload' do
-	push = JSON.parse(request.body.read)		#the JSON that GitHub API sends us
-	action = push["action"]						#the action that was taken
-	actionUser = push["sender"]["login"]		#user who took the action
-	pullTitle = push["pull_request"]["title"] 	#the title of the pull request
-	
+	push = JSON.parse(request.body.read)				#the JSON that GitHub API sends us
+	action = push["action"]								#the action that was taken
+	actionUser = push["sender"]["login"]				#user who took the action
+	pullTitle = push["pull_request"]["title"] 			#the title of the pull request
+	branchTitle = push["pull_request"]["head"]["ref"] 	#the title of the branch in the PR
+
 	if action == "labeled"
 		currentLabel = push["label"]["name"]					#the name of the label that was just applied
-		jiraKeys = pullTitle.scan(/(?:\s|^)([A-Za-z]+-[0-9]+)(?=\s|$)/) #all of the jira keys in the PR title. ABCDEFG-1234567.
+		pullJiraKeys = pullTitle.scan(/(?:\s|^)([A-Za-z]+-[0-9]+)(?=\s|$)/) #all of the jira keys in the PR title. ABCDEFG-1234567.
+		branchJiraKeys = branchTitle.scan(/(?:\s|^)([A-Za-z]+-[0-9]+)(?=\s|$)/) #all of the jira keys in the branch title. ABCDEFG-1234567.
 		issueURL = push["pull_request"]["issue_url"]			#the URL of a pull request's corresponding issue
 		issueURLauth = issueURL.insert(8,GIT_HUB_TOKEN+':@') 	#authenticate dat ish
 		issueInfo = JSON.parse(RestClient.get(issueURLauth))	#all of the info on the issue/pull request
@@ -36,6 +38,12 @@ post '/payload' do
 		else
 			actionUserHTMLURL = push["sender"]["html_url"]
 			actionJiraNameComment = "["+actionUser+"|"+actionUserHTMLURL+"]"
+		end
+
+		if branchJiraKeys.length > pullJiraKeys.length
+			jiraKeys = branchJiraKeys
+		else
+			jiraKeys = pullJiraKeys
 		end
 
 		#Loop through all of the tickets in the PR title
