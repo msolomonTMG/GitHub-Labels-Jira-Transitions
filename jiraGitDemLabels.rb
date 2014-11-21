@@ -18,7 +18,7 @@ post '/payload' do
 	if action == "labeled"
 		currentLabel = push["label"]["name"]					#the name of the label that was just applied
 		pullJiraKeys = pullTitle.scan(/(?:\s|^)([A-Za-z]+-[0-9]+)(?=\s|$)/) #all of the jira keys in the PR title. ABCDEFG-1234567.
-		branchJiraKeys = branchTitle.scan(/(?:\s|^)([A-Za-z]+-[0-9]+)(?=\s|$)/) #all of the jira keys in the branch title. ABCDEFG-1234567.
+		branchJiraKeys = branchTitle.scan(/(?:|^)([A-Za-z]+-[0-9]+)(?=|$)/) #all of the jira keys in the branch title. ABCDEFG-1234567.
 		issueURL = push["pull_request"]["issue_url"]			#the URL of a pull request's corresponding issue
 		issueURLauth = issueURL.insert(8,GIT_HUB_TOKEN+':@') 	#authenticate dat ish
 		issueInfo = JSON.parse(RestClient.get(issueURLauth))	#all of the info on the issue/pull request
@@ -40,6 +40,9 @@ post '/payload' do
 			actionJiraNameComment = "["+actionUser+"|"+actionUserHTMLURL+"]"
 		end
 
+		#if there are more Jira keys in the branch name than there are in the pull request,
+		#then update the tickets in the branch name
+		#else update the tickets in the pull request name
 		if branchJiraKeys.length > pullJiraKeys.length
 			jiraKeys = branchJiraKeys
 		else
