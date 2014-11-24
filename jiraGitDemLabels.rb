@@ -11,11 +11,12 @@ require './config.rb'
 post '/payload' do
 	push = JSON.parse(request.body.read)				#the JSON that GitHub API sends us
 	action = push["action"]								#the action that was taken
-	actionUser = push["sender"]["login"]				#user who took the action
-	pullTitle = push["pull_request"]["title"] 			#the title of the pull request
-	branchTitle = push["pull_request"]["head"]["ref"] 	#the title of the branch in the PR
 
 	if action == "labeled"
+		actionUser = push["sender"]["login"]				#user who took the action
+		pullTitle = push["pull_request"]["title"] 			#the title of the pull request
+		branchTitle = push["pull_request"]["head"]["ref"] 	#the title of the branch in the PR
+
 		currentLabel = push["label"]["name"]					#the name of the label that was just applied
 		pullJiraKeys = pullTitle.scan(/(?:\s|^)([A-Za-z]+-[0-9]+)(?=\s|$)/) #all of the jira keys in the PR title. ABCDEFG-1234567.
 		branchJiraKeys = branchTitle.scan(/(?:|^)([A-Za-z]+-[0-9]+)(?=|$)/) #all of the jira keys in the branch title. ABCDEFG-1234567.
@@ -89,6 +90,55 @@ post '/payload' do
 				puts "That means nothing to this program.\n"
 			end
 		
+		i+=1
+		end
+		#end of looping through array of tickets
+	else
+		puts "#{actionUser} just took action: #{action} on pull request: #{pullTitle} "	
+	end
+
+	if action == "synchronize"
+		pullURL = push["pull_request"]["html_url"]			#URL of pull request
+		pullTitle = push["pull_request"]["title"] 			#the title of the pull request
+		branchTitle = push["pull_request"]["head"]["ref"] 	#the title of the branch in the PR
+
+		pullJiraKeys = pullTitle.scan(/(?:\s|^)([A-Za-z]+-[0-9]+)(?=\s|$)/) #all of the jira keys in the PR title. ABCDEFG-1234567.
+		branchJiraKeys = branchTitle.scan(/(?:|^)([A-Za-z]+-[0-9]+)(?=|$)/) #all of the jira keys in the branch title. ABCDEFG-1234567.
+
+		#get the latest commit message on the PR and who made it.
+		#then update the corresponding Jira ticket(s) with this comment
+		commitsURL = push["pull_request"]["commits_url"]	
+		commitsURLauth = commitsURL.insert(8,GIT_HUB_TOKEN+':@')
+		commitsInfo = JSON.parse(RestClient.get(commitsURLauth))
+		commitComment = commitsInfo[commitsInfo.length-1]["commit"]["message"]
+		actionUserEmail = commitsInfo[commitsInfo.length-1]["commit"]["committer"]["email"]
+		
+		#if user uses thrillist email, use everything before @ as the jira name
+		#if not, use the name that github passes us
+		if actionUserEmail.split('@')[1] == "thrillist.com"
+			actionJiraName = actionUserEmail.split('@')[0]
+			actionJiraNameComment = actionJiraName.insert(0, "[~") + "]"
+		else
+			actionJiraName = commitsInfo[commitsInfo.length-1]["committer"]["login"]
+			actionJiraNameURL = commitsInfo[commitsInfo.length-1]["committer"]["html_url"]
+			actionJiraNameComment = "["+actionJiraName+"|"+actionJiraNameURL+"]"
+		end
+
+		#if there are more Jira keys in the branch name than there are in the pull request,
+		#then update the tickets in the branch name
+		#else update the tickets in the pull request name
+		if branchJiraKeys.length > pullJiraKeys.length
+			jiraKeys = branchJiraKeys
+		else
+			jiraKeys = pullJiraKeys
+		end
+
+		#Loop through all of the tickets in the PR title
+		#Decide what to do to each ticket depending on what labels the PR has
+		i = 0;
+		while (i < jiraKeys.length) do
+			jiraKey = jiraKeys[i].join
+			system "curl -D- -u #{JIRA_USER_NAME}:#{JIRA_PASSWORD} -X POST --data '{\"body\": \"#{actionJiraNameComment} updated pull request [#{pullTitle}|#{pullURL}] with comment: #{commitComment}\"}' -H \"Content-Type: application/json\" https://thrillistmediagroup.atlassian.net/rest/api/latest/issue/#{jiraKey}/comment"
 		i+=1
 		end
 		#end of looping through array of tickets
