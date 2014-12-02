@@ -139,6 +139,7 @@ post '/payload' do
 		while (i < jiraKeys.length) do
 			jiraKey = jiraKeys[i].join
 			system "curl -D- -u #{JIRA_USER_NAME}:#{JIRA_PASSWORD} -X POST --data '{\"body\": \"#{actionJiraNameComment} updated pull request [#{pullTitle}|#{pullURL}] with comment: #{commitComment}\"}' -H \"Content-Type: application/json\" https://thrillistmediagroup.atlassian.net/rest/api/latest/issue/#{jiraKey}/comment"
+			system "curl -D- -u #{JIRA_USER_NAME}:#{JIRA_PASSWORD} -X POST --data '{\"update\": {\"comment\": [{\"add\": {\"body\": \"Pull Request updated by #{actionJiraNameComment}\"}}]}, \"transition\": {\"id\": \"21\"}}' -H \"Content-Type: application/json\" https://thrillistmediagroup.atlassian.net/rest/api/latest/issue/#{jiraKey}/transitions"
 		i+=1
 		end
 		#end of looping through array of tickets
