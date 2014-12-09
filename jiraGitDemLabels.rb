@@ -93,11 +93,8 @@ post '/payload' do
 		i+=1
 		end
 		#end of looping through array of tickets
-	else
-		puts "#{actionUser} just took action: #{action} on pull request: #{pullTitle} "	
-	end
 
-	if action == "synchronize"
+	elsif action == "synchronize"
 		pullURL = push["pull_request"]["html_url"]			#URL of pull request
 		pullTitle = push["pull_request"]["title"] 			#the title of the pull request
 		branchTitle = push["pull_request"]["head"]["ref"] 	#the title of the branch in the PR
