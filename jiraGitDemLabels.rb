@@ -39,7 +39,7 @@ post '/payload' do
 			actionJiraNameComment = actionJiraName.insert(0, "[~") + "]"
 
 		#some people do not use their thrillist email in their github profile
-		elsif actionUserEmailDomain !== "thrillist.com"
+		elsif actionUserEmailDomain != "thrillist.com"
 			case actionUser
 			when "kpeltzer"
 				actionJiraNameComment = "[~kpeltzer]"
