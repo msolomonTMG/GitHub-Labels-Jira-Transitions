@@ -30,15 +30,31 @@ post '/payload' do
 		actionUserURLauth = actionUserURL.insert(8,GIT_HUB_TOKEN+':@')
 		actionUserInfo = JSON.parse(RestClient.get(actionUserURLauth))
 		actionUserEmail = actionUserInfo["email"]
+		actionUserEmailDomain = actionUserEmail.split('@')[1]
+		actionJiraName = actionUserEmail.split('@')[0]
 		
 		#if user uses thrillist email, use everything before @ as the jira name
 		#if not, use the git hub name and link that
-		if actionUserEmail.split('@')[1] == "thrillist.com"
-			actionJiraName = actionUserEmail.split('@')[0]
+		if actionUserEmailDomain == "thrillist.com"
 			actionJiraNameComment = actionJiraName.insert(0, "[~") + "]"
-		else
-			actionUserHTMLURL = push["sender"]["html_url"]
-			actionJiraNameComment = "["+actionUser+"|"+actionUserHTMLURL+"]"
+
+		#some people do not use their thrillist email in their github profile
+		elsif actionUserEmailDomain !== "thrillist.com"
+			case actionUser
+			when "kpeltzer"
+				actionJiraNameComment = "[~kpeltzer]"
+			when "gilchenzion"
+				actionJiraNameComment = "[~gchenzion]"
+			when "ecandino"
+				actionJiraNameComment = "[~ecandino]"
+			when "deanmazurek"
+				actionJiraNameComment = "[~dean]"
+			when "kwadwo"
+				actionJiraNameComment = "[~kboateng]"
+			else
+				actionUserHTMLURL = push["sender"]["html_url"]
+				actionJiraNameComment = "["+actionUser+"|"+actionUserHTMLURL+"]"
+			end
 		end
 
 		#if there are more Jira keys in the branch name than there are in the pull request,
