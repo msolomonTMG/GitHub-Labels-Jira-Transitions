@@ -130,12 +130,22 @@ post '/payload' do
 			jiraKeys = pullJiraKeys
 		end
 
+		#if someone entered a message in their pull request commit with #comment, it will
+		#already show up in Jira so there is no need to post it with this app
+		if commitComment.scan(/(?:\s|^)([A-Za-z]+-[0-9]+).+(#comment)(?=\s|$)/).length > 0
+			applyComment = false
+		else
+			applyComment = true
+		end
+
 		#Loop through all of the tickets in the PR title
 		#Decide what to do to each ticket depending on what labels the PR has
 		i = 0;
 		while (i < jiraKeys.length) do
 			jiraKey = jiraKeys[i].join
-			system "curl -D- -u #{JIRA_USER_NAME}:#{JIRA_PASSWORD} -X POST --data '{\"body\": \"#{actionJiraNameComment} updated pull request [#{pullTitle}|#{pullURL}] with comment: #{commitComment}\"}' -H \"Content-Type: application/json\" https://thrillistmediagroup.atlassian.net/rest/api/latest/issue/#{jiraKey}/comment"
+			if applyComment == true
+				system "curl -D- -u #{JIRA_USER_NAME}:#{JIRA_PASSWORD} -X POST --data '{\"body\": \"#{actionJiraNameComment} updated pull request [#{pullTitle}|#{pullURL}] with comment: #{commitComment}\"}' -H \"Content-Type: application/json\" https://thrillistmediagroup.atlassian.net/rest/api/latest/issue/#{jiraKey}/comment"
+			end
 			system "curl -D- -u #{JIRA_USER_NAME}:#{JIRA_PASSWORD} -X POST --data '{\"update\": {\"comment\": [{\"add\": {\"body\": \"Pull Request updated by #{actionJiraNameComment}\"}}]}, \"transition\": {\"id\": \"21\"}}' -H \"Content-Type: application/json\" https://thrillistmediagroup.atlassian.net/rest/api/latest/issue/#{jiraKey}/transitions"
 		i+=1
 		end
