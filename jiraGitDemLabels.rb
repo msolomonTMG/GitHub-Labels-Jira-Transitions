@@ -51,6 +51,8 @@ post '/payload' do
 				actionJiraNameComment = "[~dean]"
 			when "kwadwo"
 				actionJiraNameComment = "[~kboateng]"
+			when "tarasiegel"
+				actionJiraNameComment = "[~tsiegel]"
 			else
 				actionUserHTMLURL = push["sender"]["html_url"]
 				actionJiraNameComment = "["+actionUser+"|"+actionUserHTMLURL+"]"
