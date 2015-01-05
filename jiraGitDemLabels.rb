@@ -43,6 +43,8 @@ post '/payload' do
 			case actionUser
 			when "kpeltzer"
 				actionJiraNameComment = "[~kpeltzer]"
+			when "ken"
+				actionJiraNameComment = "[~kpeltzer]"
 			when "gilchenzion"
 				actionJiraNameComment = "[~gchenzion]"
 			when "ecandino"
