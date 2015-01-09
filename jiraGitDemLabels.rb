@@ -173,4 +173,8 @@ post '/payload' do
 	else
 		puts "#{actionUser} just took action: #{action} on pull request: #{pullTitle} "	
 	end
+
+	if DEBUG == "on"
+		puts push
+	end
 end
