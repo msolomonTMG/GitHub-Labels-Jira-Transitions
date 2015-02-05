@@ -131,16 +131,37 @@ post '/payload' do
 		commitsInfo = JSON.parse(RestClient.get(commitsURLauth))
 		commitComment = commitsInfo[commitsInfo.length-1]["commit"]["message"]
 		actionUserEmail = commitsInfo[commitsInfo.length-1]["commit"]["committer"]["email"]
+		actionJiraName = commitsInfo[commitsInfo.length-1]["committer"]["login"]
 		
 		#if user uses thrillist email, use everything before @ as the jira name
 		#if not, use the name that github passes us
 		if actionUserEmail.split('@')[1] == "thrillist.com"
 			actionJiraName = actionUserEmail.split('@')[0]
 			actionJiraNameComment = actionJiraName.insert(0, "[~") + "]"
-		else
-			actionJiraName = commitsInfo[commitsInfo.length-1]["committer"]["login"]
-			actionJiraNameURL = commitsInfo[commitsInfo.length-1]["committer"]["html_url"]
-			actionJiraNameComment = "["+actionJiraName+"|"+actionJiraNameURL+"]"
+		elsif actionUserEmailDomain != "thrillist.com"
+			case actionJiraName
+			when "kpeltzer"
+				actionJiraNameComment = "[~kpeltzer]"
+			when "ken"
+				actionJiraNameComment = "[~kpeltzer]"
+			when "gilchenzion"
+				actionJiraNameComment = "[~gchenzion]"
+			when "ecandino"
+				actionJiraNameComment = "[~ecandino]"
+			when "deanmazurek"
+				actionJiraNameComment = "[~dean]"
+			when "kwadwo"
+				actionJiraNameComment = "[~kboateng]"
+			when "tarasiegel"
+				actionJiraNameComment = "[~tsiegel]"
+			when "samiamorwas"
+				actionJiraNameComment = "[~mhaarhaus]"
+			when "cahalanej"
+				actionJiraNameComment = "[~jcahalane]"
+			else	
+				actionJiraNameURL = commitsInfo[commitsInfo.length-1]["committer"]["html_url"]
+				actionJiraNameComment = "["+actionJiraName+"|"+actionJiraNameURL+"]"
+			end
 		end
 
 		#if there are more Jira keys in the branch name than there are in the pull request,
