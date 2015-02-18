@@ -107,6 +107,10 @@ post '/payload' do
 					#Reviewed command: 
 					system "curl -D- -u #{JIRA_USER_NAME}:#{JIRA_PASSWORD} -X POST --data '{\"update\": {\"comment\": [{ \"add\": {\"body\": \"Code review passed by #{actionJiraNameComment} !http://www.devart.com/images/products/logos/large/review-assistant.png!\"} }]}, \"transition\": {\"id\": \"#{REVIEW_PASSED_ID}\"}}' -H \"Content-Type: application/json\" https://thrillistmediagroup.atlassian.net/rest/api/latest/issue/#{jiraKey}/transitions"
 				end
+
+			elsif currentLabel == "Production Verified" && jiraKey != nil
+				system "curl -D- -u #{JIRA_USER_NAME}:#{JIRA_PASSWORD} -X POST --data '{\"update\": {\"comment\": [{ \"add\": {\"body\": \"Production verification passed by #{actionJiraNameComment} (y)\"} }]}, \"transition\": {\"id\": \"#{PRODCUTION_VERIFIED_ID}\"}}' -H \"Content-Type: application/json\" https://thrillistmediagroup.atlassian.net/rest/api/latest/issue/#{jiraKey}/transitions"
+				puts "\n#{actionUser} labeled pull request: #{pullTitle} with #{currentLabel}." 
 			else
 				puts "\n#{actionUser} labeled pull request: #{pullTitle} with #{currentLabel}." 
 				puts "That means nothing to this program.\n"
