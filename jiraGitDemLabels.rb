@@ -57,6 +57,12 @@ post '/payload' do
 				actionJiraNameComment = "[~tsiegel]"
 			when "samiamorwas"
 				actionJiraNameComment = "[~mhaarhaus]"
+			when "cahalanej"
+				actionJiraNameComment = "[~jcahalane]"
+			when "bdean"
+				actionJiraNameComment = "[~brian-thrillist]"
+			when "jay"
+				actionJiraNameComment = "[~jchinthrajah]"
 			else
 				actionUserHTMLURL = push["sender"]["html_url"]
 				actionJiraNameComment = "["+actionUser+"|"+actionUserHTMLURL+"]"
@@ -162,6 +168,10 @@ post '/payload' do
 				actionJiraNameComment = "[~mhaarhaus]"
 			when "cahalanej"
 				actionJiraNameComment = "[~jcahalane]"
+			when "bdean"
+				actionJiraNameComment = "[~brian-thrillist]"
+			when "jay"
+				actionJiraNameComment = "[~jchinthrajah]"
 			else	
 				actionJiraNameURL = commitsInfo[commitsInfo.length-1]["committer"]["html_url"]
 				actionJiraNameComment = "["+actionJiraName+"|"+actionJiraNameURL+"]"
