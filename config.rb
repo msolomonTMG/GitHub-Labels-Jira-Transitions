@@ -1,7 +1,7 @@
 #Credentials
 GIT_HUB_TOKEN = ""
 JIRA_USER_NAME = ""
-JIRA_PASSWORD = "!"
+JIRA_PASSWORD = ""
 
 #Jira Transition IDs
 QA_PASSED_ID = "91"
