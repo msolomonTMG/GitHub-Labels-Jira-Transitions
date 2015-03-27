@@ -63,6 +63,10 @@ post '/payload' do
 				actionJiraNameComment = "[~brian-thrillist]"
 			when "jay"
 				actionJiraNameComment = "[~jchinthrajah]"
+			when "jay-thrillist"
+				actionJiraNameComment = "[~jchinthrajah]"
+			when "patrick"
+				actionJiraNameComment = "[~plange]"
 			else
 				actionUserHTMLURL = push["sender"]["html_url"]
 				actionJiraNameComment = "["+actionUser+"|"+actionUserHTMLURL+"]"
@@ -115,7 +119,7 @@ post '/payload' do
 				end
 
 			elsif currentLabel == "Production verified" && jiraKey != nil
-				system "curl -D- -u #{JIRA_USER_NAME}:#{JIRA_PASSWORD} -X POST --data '{\"update\": {\"comment\": [{ \"add\": {\"body\": \"Production verification passed by #{actionJiraNameComment} (y)\"} }]}, \"transition\": {\"id\": \"#{PRODCUTION_VERIFIED_ID}\"}}' -H \"Content-Type: application/json\" https://thrillistmediagroup.atlassian.net/rest/api/latest/issue/#{jiraKey}/transitions"
+				system "curl -D- -u #{JIRA_USER_NAME}:#{JIRA_PASSWORD} -X POST --data '{\"update\": {\"comment\": [{ \"add\": {\"body\": \"Production verification passed by #{actionJiraNameComment} (y)\"} }]}, \"transition\": {\"id\": \"#{PRODUCTION_VERIFIED_ID}\"}}' -H \"Content-Type: application/json\" https://thrillistmediagroup.atlassian.net/rest/api/latest/issue/#{jiraKey}/transitions"
 				puts "\n#{actionUser} labeled pull request: #{pullTitle} with #{currentLabel}." 
 			else
 				puts "\n#{actionUser} labeled pull request: #{pullTitle} with #{currentLabel}." 
@@ -172,6 +176,10 @@ post '/payload' do
 				actionJiraNameComment = "[~brian-thrillist]"
 			when "jay"
 				actionJiraNameComment = "[~jchinthrajah]"
+                        when "jay-thrillist"
+                                actionJiraNameComment = "[~jchinthrajah]"
+                        when "patrick"
+                                actionJiraNameComment = "[~plange]"
 			else	
 				actionJiraNameURL = commitsInfo[commitsInfo.length-1]["committer"]["html_url"]
 				actionJiraNameComment = "["+actionJiraName+"|"+actionJiraNameURL+"]"

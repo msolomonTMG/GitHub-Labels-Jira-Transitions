@@ -1,5 +1,7 @@
 #Credentials
-GIT_HUB_TOKEN = ""
+GIT_HUB_TOKEN = "da78dc3d5a03e6a6288d74ce7a75620ee6a0f2f2"
+JIRA_USER_NAME = "msolomon"
+JIRA_PASSWORD = "!Ynftpo12"
 
 #Jira Transition IDs
 QA_PASSED_ID = "91"
