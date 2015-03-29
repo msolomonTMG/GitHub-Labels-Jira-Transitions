@@ -13,10 +13,8 @@ post '/payload' do
 	#the JSON that GitHub webhook sends us
 	push = JSON.parse(request.body.read)
 	
-	if action
-		#the action that was taken
-		action = push["action"]
-	end
+	#the action that was taken
+	action = push["action"]
 	#the user who made the action to the pull request
 	user = get_user push["sender"]
 	#the pull request that was actioned on

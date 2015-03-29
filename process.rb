@@ -91,20 +91,21 @@ def update_label_jira (jira_issues, current_label, pull_request_labels, user)
 		#if the user labeled the pull request with QAed and the pull request is already labeled with reviewed, move to deploy ready
 		if current_label == "QAed" && jira_issue != nil
 			#move to qaed by user
+			transition_issue jira_issue, QA_PASSED_ID, user
+			#if this ticket is also reviewed, move to deploy ready
 			if pull_request_labels.find {|x| x["name"] == "reviewed"} != nil
-				puts user + "reviewed and qaed this ticket: " + jira_issue
 				transition_issue jira_issue, DEPLOY_READY_ID, user
-				#RestClient.get( user_object["url"], {:params => {:access_token => GIT_HUB_TOKEN}, :accept => :json} )
-				#system "curl -D- -u #{JIRA_USER_NAME}:#{JIRA_PASSWORD} -X POST --data '{\"update\": {\"comment\": [{\"add\": {\"body\": \"QA passed by #{actionJiraNameComment} !http://assets3.thrillist.com/v1/image/1356002|height=120px,width=120px!\"}}]}, \"transition\": {\"id\": \"#{QA_PASSED_ID}\"}}' -H \"Content-Type: application/json\" https://thrillistmediagroup.atlassian.net/rest/api/latest/issue/#{jiraKey}/transitions"
-				#Move to deploy ready
 			end
 		elsif current_label == "reviewed" && jira_issue != nil
 			#move to reveiwed by user
+			transition_issue jira_issue, REVIEW_PASSED_ID
+			#if this ticket is also QAed, move to deploy ready
 			if pull_request_labels.find {|x| x["name"] == "QAed"} != nil
-				#Move to deploy ready
+				transition_issue jira_issue, DEPLOY_READY_ID, user
 			end
 		elsif current_label == "Production verified" && jiraKey != nil
 			#move to production verified by user
+			transition_issue jira_issue, PRODUCTION_VERIFIED_ID, user
 		else
 			#dont need to do anything for this label
 		end
@@ -137,32 +138,36 @@ def update_message_jira (jira_issues, latest_commit_message, user)
 end
 
 def transition_issue (jira_issue, update_to, user)
+	case update_to
+	when QA_PASSED_ID
+		body = "QA passed by #{user} #{JIRA_QA_IMAGE}"
+	when REVIEW_PASSED_ID
+		body = "Code review passed by #{user} #{JIRA_REVIEW_IMAGE}"
+	when DEPLOY_READY_ID
+		body = "Deploy ready"
+	end
 
 	data = {
-		:update => {
-			:comment => [{
-				:add => {
-					:body => "QA passed by #{user} #{JIRA_QA_IMAGE}"
+		"update" => {
+			"comment" => [
+				{
+					"add" => {
+						"body" => body
+					}	
 				}
-			}],
-			:transition => {
-				:id => "#{update_to}"
-			}
+			]
+		},
+		"transition" => {
+			"id" => "#{update_to}"
 		}
-	}
+	}.to_json
 	puts data
 	headers = { 
-        :Authorization => "Basic #{JIRA_TOKEN}",
+        :"Authorization" => "Basic #{JIRA_TOKEN}",
         :"Content-Type" => "application/json"
     }
-    url = "#{JIRA_URL}"+jira_issue+"/transitions"
+    url = JIRA_URL + jira_issue + "/transitions"
     puts url
-	#response = RestClient.post( url, :data => data, :'Authorization' => "Basic #{JIRA_TOKEN}", :content_type => :json, :accept => :json )
-	response = RestClient::Request.execute(
-	   :method => :post,
-	   :url => url,
-	   :data => data,
-	   :headers => {:'Authorization' => "Basic #{JIRA_TOKEN}", :"Content-Type" => "application/json"}
-	)
+	response = RestClient.post( url, data, headers )
 	puts response
 end
