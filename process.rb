@@ -53,7 +53,7 @@ def get_user (user_object)
 	end
 
 	#overwrite special cases
-	case user_email_prefix
+	case user_object["login"]
 	when "kpeltzer"
 		user = "[~kpeltzer]"
 	when "ken"
