@@ -84,21 +84,26 @@ def get_user (user_object)
 	return user
 end
 
-def update_label_jira (jira_issues, current_label, pull_request_labels, user)
+def update_label_jira (action, jira_issues, current_label, pull_request_labels, user)
 	i = 0
 	while (i < jira_issues.length) do
 		jira_issue = jira_issues[i].join
 		#if the user labeled the pull request with QAed and the pull request is already labeled with reviewed, move to deploy ready
 		if current_label == "QAed" && jira_issue != nil
-			#move to qaed by user
-			transition_issue jira_issue, QA_PASSED_ID, user
-			#if this ticket is also reviewed, move to deploy ready
-			if pull_request_labels.find {|x| x["name"] == "reviewed"} != nil
-				transition_issue jira_issue, DEPLOY_READY_ID, user
+			if action == "labeled"
+				#move to qaed by user
+				transition_issue jira_issue, QA_PASSED_ID, user
+				#if this ticket is also reviewed, move to deploy ready
+				if pull_request_labels.find {|x| x["name"] == "reviewed"} != nil
+					transition_issue jira_issue, DEPLOY_READY_ID, user
+				end
+			elsif action == "unlabeled"
+				#move to qa failed by user
+				transition_issue jira_issue, QA_FAILED_ID, user
 			end
 		elsif current_label == "reviewed" && jira_issue != nil
 			#move to reveiwed by user
-			transition_issue jira_issue, REVIEW_PASSED_ID
+			transition_issue jira_issue, REVIEW_PASSED_ID, user
 			#if this ticket is also QAed, move to deploy ready
 			if pull_request_labels.find {|x| x["name"] == "QAed"} != nil
 				transition_issue jira_issue, DEPLOY_READY_ID, user
@@ -113,7 +118,7 @@ def update_label_jira (jira_issues, current_label, pull_request_labels, user)
 	end
 end
 
-def update_message_jira (jira_issues, latest_commit_message, user)
+def update_message_jira (jira_issues, pull_request, latest_commit_message, user)
 	#if someone entered a message in their pull request commit with #comment, it will
 	#already show up in Jira so there is no need to post it with this app
 	if latest_commit_message.scan(/(?:\s|^)([A-Za-z]+-[0-9]+).+(#comment)(?=\s|$)/).length > 0
@@ -128,17 +133,30 @@ def update_message_jira (jira_issues, latest_commit_message, user)
 	while (i < jira_issues.length) do
 		jira_issue = jira_issues[i].join
 		if apply_comment == true
-			transition_issue jira_issue QA_READY_ID, user
-			#system "curl -D- -u #{JIRA_USER_NAME}:#{JIRA_PASSWORD} -X POST --data '{\"body\": \"#{actionJiraNameComment} updated pull request [#{pullTitle}|#{pullURL}] with comment: #{commitComment}\"}' -H \"Content-Type: application/json\" https://thrillistmediagroup.atlassian.net/rest/api/latest/issue/#{jiraKey}/comment"
+			transition_issue jira_issue, QA_READY_ID, user, pull_request, "updated", latest_commit_message
 		end
-		#system "curl -D- -u #{JIRA_USER_NAME}:#{JIRA_PASSWORD} -X POST --data '{\"update\": {\"comment\": [{\"add\": {\"body\": \"Pull Request updated by #{actionJiraNameComment}\"}}]}, \"transition\": {\"id\": \"21\"}}' -H \"Content-Type: application/json\" https://thrillistmediagroup.atlassian.net/rest/api/latest/issue/#{jiraKey}/transitions"
-	i+=1
+		i+=1
 	end
 
 end
 
-def transition_issue (jira_issue, update_to, user)
+def start_qa (jira_issues, pull_request, user)
+	i = 0;
+	while (i < jira_issues.length) do
+		jira_issue = jira_issues[i].join
+		transition_issue jira_issue, QA_READY_ID, user, pull_request, "opened"
+		i+=1
+	end
+end
+
+def transition_issue (jira_issue, update_to, user, *pull_request_info)
 	case update_to
+	when QA_READY_ID
+		if pull_request_info[1] == "opened"
+			body = "#{user} opened pull request: [#{pull_request_info[0]["title"]}|#{pull_request_info[0]["html_url"]}]. Ready for QA"
+		elsif pull_request_info[1] == "updated"
+			body = "#{user} updated pull request: [#{pull_request_info[0]["title"]}|#{pull_request_info[0]["html_url"]}] with comment: \n bq. #{pull_request_info[2]}"
+		end
 	when QA_PASSED_ID
 		body = "QA passed by #{user} #{JIRA_QA_IMAGE}"
 	when REVIEW_PASSED_ID
@@ -161,13 +179,10 @@ def transition_issue (jira_issue, update_to, user)
 			"id" => "#{update_to}"
 		}
 	}.to_json
-	puts data
 	headers = { 
         :"Authorization" => "Basic #{JIRA_TOKEN}",
         :"Content-Type" => "application/json"
     }
     url = JIRA_URL + jira_issue + "/transitions"
-    puts url
 	response = RestClient.post( url, data, headers )
-	puts response
 end

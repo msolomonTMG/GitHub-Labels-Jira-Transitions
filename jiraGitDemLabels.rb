@@ -33,9 +33,12 @@ post '/payload' do
 	elsif action == "synchronize"
 		#get latest commit message on pull request
 		latest_commit_message = get_latest_commit_message pull_request, push["repository"]["commits_url"]
-		puts latest_commit_message
 		#update jira ticket by moving to QA and commenting with the latest commit message
-		#update_message_jira jira_issues, latest_commit_message, user
+		update_message_jira jira_issues, pull_request, latest_commit_message, user
+
+	elsif action == "opened"
+		#move ticket(s) to in QA testing and comment on the ticket(s)
+		start_qa jira_issues, pull_request, user
 	end
 		
 		
