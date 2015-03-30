@@ -83,7 +83,7 @@ def get_user (user_object)
 	return user
 end
 
-def update_label_jira (action, jira_issues, current_label, pull_request_labels, user)
+def update_label_jira (jira_issues, current_label, pull_request_labels, user)
 	i = 0
 	while (i < jira_issues.length) do
 		jira_issue = jira_issues[i].join
