@@ -31,7 +31,6 @@ def get_latest_commit_message (pull_request, commits_url)
 	latest_commit_info = JSON.parse(RestClient.get( url, {:params => {:access_token => GIT_HUB_TOKEN}, :accept => :json} ) )
 	latest_commit_message = latest_commit_info["commit"]["message"]
 	return latest_commit_message
-	#ser_info = JSON.parse(RestClient.get( user_object["url"], {:params => {:access_token => GIT_HUB_TOKEN}, :accept => :json} ) )
 end
 
 #returns jira markdown for the user
