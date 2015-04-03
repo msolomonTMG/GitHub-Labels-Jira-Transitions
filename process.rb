@@ -1,3 +1,5 @@
+require 'rubygems'
+require 'data_mapper'
 require 'json'
 require 'rest-client'
 require './config.rb'
@@ -177,6 +179,46 @@ def transition_issue (jira_issue, update_to, user, *pull_request_info)
         :"Authorization" => "Basic #{JIRA_TOKEN}",
         :"Content-Type" => "application/json"
     }
+    
     url = JIRA_URL + jira_issue + "/transitions"
-	response = RestClient.post( url, data, headers )
+	
+	#figure out if this issue is able to be transitioned to where we want it to go
+	#if we can transition it, post to JIRA, if we can't then don't send anything
+	available_transitions = JSON.parse( RestClient.get( url, headers ) )
+	able_to_transition = is_able_to_transition update_to, available_transitions
+	puts able_to_transition
+
+	if able_to_transition == true
+		response = RestClient.post( url, data, headers )
+	end
+end
+
+#returns true if the ticket's available transitions includes the transition that we want to update to
+def is_able_to_transition(update_to, available_transitions)
+	able_to_transition = false
+
+	i = 0
+	while (i < available_transitions["transitions"].length ) do
+		available_transition = available_transitions["transitions"][i]
+		if available_transition["id"] == update_to
+			able_to_transition = true
+			i += available_transitions["transitions"].length
+		end 
+		i += 1
+	end
+
+	return able_to_transition
+end
+
+def log_event (user, action, pull_request)
+	#if user != nil && action != nil
+		event = Event.new
+		event.user_name = user["login"]
+		event.user_avatar_url = user["avatar_url"]
+		event.user_url = user["html_url"]
+		event.action = action
+		event.pull_request_title = pull_request["title"]
+		event.pull_request_url = pull_request["html_url"]
+		#event.jira_issues = jira_issues
+		event.save
 end

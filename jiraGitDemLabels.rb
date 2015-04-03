@@ -3,11 +3,29 @@
 # based on GitHub labels on corresponding pull requests
 # 
 
+require 'rubygems'
 require 'sinatra'
+require 'data_mapper'
 require 'json'
 require 'rest-client'
 require './config.rb'
 require './process.rb'
+
+DataMapper.setup(:default, "sqlite::memory:")
+
+class Event
+	include DataMapper::Resource
+
+	property :id, Serial
+	property :user_name, String
+	property :user_avatar_url, String, :length => 100
+	property :user_url, String, :length => 100
+	property :action, String
+	property :pull_request_title, String, :length => 100
+	property :pull_request_url, String, :length => 100
+end
+
+Event.auto_migrate!
 
 post '/payload' do
 	#the JSON that GitHub webhook sends us
@@ -40,6 +58,16 @@ post '/payload' do
 		#move ticket(s) to in QA testing and comment on the ticket(s)
 		start_qa jira_issues, pull_request, user
 	end
-		
-		
+
+	log_event push["sender"], action, pull_request
+
+end
+
+get '/' do
+	events = Event.all
+end
+
+get '/log' do
+	events = Event.all
+	erb :index, :locals => {:events => events}
 end
