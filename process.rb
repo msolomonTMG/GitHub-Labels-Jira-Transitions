@@ -70,7 +70,7 @@ def get_user (user_object)
 		user = "[~mhaarhaus]"
 	when "cahalanej"
 		user = "[~jcahalane]"
-	when "bdean"
+	when "bdeane"
 		user = "[~brian-thrillist]"
 	when "jay"
 		user = "[~jchinthrajah]"
