@@ -1,6 +1,5 @@
 # Author: Mike Solomon
-# This app uses some terrible programming practices to flip Jira statuses
-# based on GitHub labels on corresponding pull requests
+# This app flips Jira statuses based on applying labels to Github pull requests
 # 
 
 require 'sinatra'
