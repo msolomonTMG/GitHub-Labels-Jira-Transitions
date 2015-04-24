@@ -9,6 +9,8 @@ require 'rest-client'
 require './config.rb'
 require './process.rb'
 
+set :server, 'webrick'
+
 post '/payload' do
 	#the JSON that GitHub webhook sends us
 	push = JSON.parse(request.body.read)
