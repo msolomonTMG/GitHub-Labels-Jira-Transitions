@@ -12,14 +12,18 @@ end
 
 #returns an array of jira issues associated with a pull request
 #if there are more jira issues in the pull request title than in the branch, return the issues in the title
-def get_jira_issues (pull_request)
-	issues_in_branch = pull_request["head"]["ref"].scan(/(?:|^)([A-Za-z]+-[0-9]+)(?=|$)/)
-	issues_in_pull_request_title = pull_request["title"].scan(/(?:\s|^)([A-Za-z]+-[0-9]+)(?=\s|$)/)
+def get_jira_issues (code, type)
+	if type == "branch"
+		jira_issues = code.scan(/(?:|^)([A-Za-z]+-[0-9]+)(?=|$)/)
+	elsif type == "pull_request"
+		issues_in_branch = code["head"]["ref"].scan(/(?:|^)([A-Za-z]+-[0-9]+)(?=|$)/)
+		issues_in_pull_request_title = code["title"].scan(/(?:\s|^)([A-Za-z]+-[0-9]+)(?=\s|$)/)
 
-	if issues_in_branch.length > issues_in_pull_request_title.length
-		jira_issues = issues_in_branch
-	else
-		jira_issues = issues_in_pull_request_title
+		if issues_in_branch.length > issues_in_pull_request_title.length
+			jira_issues = issues_in_branch
+		else
+			jira_issues = issues_in_pull_request_title
+		end
 	end
 
 	return jira_issues
@@ -143,13 +147,59 @@ def start_qa (jira_issues, pull_request, user)
 	end
 end
 
-def transition_issue (jira_issue, update_to, user, *pull_request_info)
+def start_progress (jira_issues, branch, user)
+	i = 0;
+	while (i < jira_issues.length) do
+		jira_issue = jira_issues[i].join
+		transition_issue jira_issue, START_PROGRESS_ID, user, branch, "created", "jitr"
+		i+=1
+	end
+end
+
+#add branch name or pull request name to jira issues
+def update_development_info_jira (jira_issues, name, type)
+	if type == "branch"
+		field = JIRA_FIELD_BRANCH
+	elsif type == "pull_request"
+		field = JIRA_FIELD_PULL_REQUEST
+	end
+	i = 0;
+	while (i < jira_issues.length) do
+		jira_issue = jira_issues[i].join
+
+		data = {
+			"fields" => {
+				field => name
+			}
+		}.to_json
+
+		headers = { 
+	        :"Authorization" => "Basic #{JIRA_TOKEN}",
+	        :"Content-Type" => "application/json"
+	    }
+
+	    url = JIRA_URL + jira_issue
+		response = RestClient.put( url, data, headers )
+
+		i+=1
+	end
+
+	#"customfield_10000" = branch
+	#"customfield_10123" = pull_request
+end
+
+def transition_issue (jira_issue, update_to, user, *code_info)
+	url = JIRA_URL + jira_issue + "/transitions"
+
 	case update_to
+	when START_PROGRESS_ID
+		puts "I made it here"
+		body = "Progress started when #{user} created branch: #{code_info[0]} in GitHub"
 	when QA_READY_ID
 		if pull_request_info[1] == "opened"
-			body = "#{user} opened pull request: [#{pull_request_info[0]["title"]}|#{pull_request_info[0]["html_url"]}]. Ready for QA"
+			body = "#{user} opened pull request: [#{code_info[0]["title"]}|#{code_info[0]["html_url"]}]. Ready for QA"
 		elsif pull_request_info[1] == "updated"
-			body = "#{user} updated pull request: [#{pull_request_info[0]["title"]}|#{pull_request_info[0]["html_url"]}] with comment: \n bq. #{pull_request_info[2]}"
+			body = "#{user} updated pull request: [#{code_info[0]["title"]}|#{code_info[0]["html_url"]}] with comment: \n bq. #{code_info[2]}"
 		end
 	when QA_PASSED_ID
 		body = "QA passed by #{user} #{JIRA_QA_IMAGE}"
@@ -173,10 +223,68 @@ def transition_issue (jira_issue, update_to, user, *pull_request_info)
 			"id" => "#{update_to}"
 		}
 	}.to_json
+
+	#If this is a JITR ticket that's being transitioned, let's make sure we add PRs and Branch names during transition
+	#I would love to find a way to quickly append this JSON to the existing data object to clean this up
+	if code_info[2] == "jitr"
+		#url.concat("?expand=transitions.fields")
+		case update_to
+		when START_PROGRESS_ID
+			field = JIRA_FIELD_BRANCH
+
+			data = {
+				"update" => {
+					"comment" => [
+						{
+							"add" => {
+								"body" => body
+							}	
+						}
+					],
+					field => [
+						{
+							"set" => "#{code_info[0]}"
+						}
+					]
+				},
+				"transition" => {
+					"id" => "#{update_to}"
+				}
+			}.to_json
+		when QA_READY_ID
+			field = JIRA_FIELD_PULL_REQUEST
+
+			data = {
+				"update" => {
+					"comment" => [
+						{
+							"add" => {
+								"body" => body
+							}	
+						}
+					],
+					field => [
+						{
+							"set" => "[#{code_info[0]["title"]}|#{code_info[0]["html_url"]}]"
+						}
+					]
+				},
+				"transition" => {
+					"id" => "#{update_to}"
+				}
+			}.to_json
+
+		end
+		data.to_json
+	end
+
 	headers = { 
         :"Authorization" => "Basic #{JIRA_TOKEN}",
         :"Content-Type" => "application/json"
     }
-    url = JIRA_URL + jira_issue + "/transitions"
+
+    puts url
+    puts data
+    
 	response = RestClient.post( url, data, headers )
 end

@@ -10,9 +10,29 @@ require './config.rb'
 require './process.rb'
 
 post '/payload' do
+	#the type of event that happened in GitHub
+	event = request.env["HTTP_X_GITHUB_EVENT"]
 	#the JSON that GitHub webhook sends us
 	push = JSON.parse(request.body.read)
-	
+	#if the event was a pull request, handle that differently than actions for branches
+	if event == "pull_request"
+		handle_pull_request push
+	elsif event == "create" && push["ref_type"] == "branch"
+		#the branch that was created
+		branch = push["ref"]
+		#the user who made the action to the pull request
+		user = get_user push["sender"]
+		#if this is a JITR ticket, update the JIRA issue with the branch name
+		if push["repository"]["name"] == "jvaca"
+			jira_issues = get_jira_issues branch, "branch"
+			#update_development_info_jira jira_issues, branch, "branch"
+			start_progress jira_issues, branch, user
+		end
+	end
+end
+
+def handle_pull_request (push)
+	puts push["repository"]["name"]
 	#the action that was taken
 	action = push["action"]
 	#the user who made the action to the pull request
@@ -20,7 +40,7 @@ post '/payload' do
 	#the pull request that was actioned on
 	pull_request = push["pull_request"]
 	#jira issues associated with the pull request
-	jira_issues = get_jira_issues pull_request
+	jira_issues = get_jira_issues pull_request, "pull_request"
 
 	if action == "labeled"
 		#array of labels applied to this pull request
@@ -37,9 +57,12 @@ post '/payload' do
 		update_message_jira jira_issues, pull_request, latest_commit_message, user
 
 	elsif action == "opened"
+		#if this is a JITR ticket, we will populate the Pull Request field with the new pull request url
+		#if pull_request["repo"]["name"] == "JackThreads"
+		if push["repository"]["name"] == "jvaca"
+			#update_development_info_jira jira_issues, pull_request["html_url"], "pull_request"
+		end
 		#move ticket(s) to in QA testing and comment on the ticket(s)
 		start_qa jira_issues, pull_request, user
 	end
-		
-		
 end
