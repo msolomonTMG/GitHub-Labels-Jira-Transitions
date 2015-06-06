@@ -32,7 +32,6 @@ post '/payload' do
 end
 
 def handle_pull_request (push)
-	puts push["repository"]["name"]
 	#the action that was taken
 	action = push["action"]
 	#the user who made the action to the pull request

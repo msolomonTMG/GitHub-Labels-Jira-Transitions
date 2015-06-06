@@ -208,29 +208,15 @@ end
 def transition_issue (jira_issue, update_to, user, *code_info)
 	url = JIRA_URL + jira_issue + "/transitions"
 
-	puts "code info 0"
-	puts code_info[0]
-	puts "code info 1"
-	puts code_info[1]
-	puts "code info 2"
-	puts code_info[2]
-	puts "update to"
-	puts update_to
-	puts "QA READY JITR"
-	puts QA_READY_JITR_ID
-
 	case update_to
 	when START_PROGRESS_ID
-		puts "I made it here"
 		body = "Progress started when #{user} created branch: #{code_info[0]} in GitHub"
 	when QA_READY_ID, QA_READY_JITR_ID
-		puts "I got here"
 		if code_info[1] == "opened"
 			body = "#{user} opened pull request: [#{code_info[0]["title"]}|#{code_info[0]["html_url"]}]. Ready for QA"
 		elsif code_info[1] == "updated"
 			body = "#{user} updated pull request: [#{code_info[0]["title"]}|#{code_info[0]["html_url"]}] with comment: \n bq. #{code_info[2]}"
 		end
-		puts body
 	when QA_PASSED_ID
 		body = "QA passed by #{user} #{JIRA_QA_IMAGE}"
 	when REVIEW_PASSED_ID
@@ -312,9 +298,6 @@ def transition_issue (jira_issue, update_to, user, *code_info)
         :"Authorization" => "Basic #{JIRA_TOKEN}",
         :"Content-Type" => "application/json"
     }
-
-    puts url
-    puts data
-    
+   
 	response = RestClient.post( url, data, headers )
 end
