@@ -23,7 +23,7 @@ post '/payload' do
 		#the user who made the action to the pull request
 		user = get_user push["sender"]
 		#if this is a JITR ticket, update the JIRA issue with the branch name
-		if push["repository"]["name"] == "jvaca"
+		if push["repository"]["name"] == "JackThreads"
 			jira_issues = get_jira_issues branch, "branch"
 			#update_development_info_jira jira_issues, branch, "branch"
 			start_progress jira_issues, branch, user
@@ -41,6 +41,12 @@ def handle_pull_request (push)
 	pull_request = push["pull_request"]
 	#jira issues associated with the pull request
 	jira_issues = get_jira_issues pull_request, "pull_request"
+	#is this a JITR issue
+	if push["repository"]["name"] == "JackThreads"
+		is_jitr = true
+	else
+		is_jitr = false
+	end
 
 	if action == "labeled"
 		#array of labels applied to this pull request
@@ -54,15 +60,10 @@ def handle_pull_request (push)
 		#get latest commit message on pull request
 		latest_commit_message = get_latest_commit_message pull_request, push["repository"]["commits_url"]
 		#update jira ticket by moving to QA and commenting with the latest commit message
-		update_message_jira jira_issues, pull_request, latest_commit_message, user
+		update_message_jira jira_issues, pull_request, latest_commit_message, user, is_jitr
 
 	elsif action == "opened"
-		#if this is a JITR ticket, we will populate the Pull Request field with the new pull request url
-		#if pull_request["repo"]["name"] == "JackThreads"
-		if push["repository"]["name"] == "jvaca"
-			#update_development_info_jira jira_issues, pull_request["html_url"], "pull_request"
-		end
 		#move ticket(s) to in QA testing and comment on the ticket(s)
-		start_qa jira_issues, pull_request, user
+		start_qa jira_issues, pull_request, user, is_jitr
 	end
 end

@@ -116,7 +116,12 @@ def update_label_jira (jira_issues, current_label, pull_request_labels, user)
 	end
 end
 
-def update_message_jira (jira_issues, pull_request, latest_commit_message, user)
+def update_message_jira (jira_issues, pull_request, latest_commit_message, user, is_jitr)
+	if is_jitr == true
+		qa_transition_id = QA_READY_JITR_ID
+	else
+		qa_transition_id = QA_READY_ID
+	end
 	#if someone entered a message in their pull request commit with #comment, it will
 	#already show up in Jira so there is no need to post it with this app
 	if latest_commit_message.scan(/(?:\s|^)([A-Za-z]+-[0-9]+).+(#comment)(?=\s|$)/).length > 0
@@ -131,18 +136,26 @@ def update_message_jira (jira_issues, pull_request, latest_commit_message, user)
 	while (i < jira_issues.length) do
 		jira_issue = jira_issues[i].join
 		if apply_comment == true
-			transition_issue jira_issue, QA_READY_ID, user, pull_request, "updated", latest_commit_message
+			transition_issue jira_issue, qa_transition_id, user, pull_request, "updated", latest_commit_message
 		end
 		i+=1
 	end
 
 end
 
-def start_qa (jira_issues, pull_request, user)
+#loops through all of the issues given as a parameter and sends them to the transition function
+#need to know if a batch of tickets belongs to JITR team because they use different transition IDs
+def start_qa (jira_issues, pull_request, user, is_jitr)
+	if is_jitr == true
+		qa_transition_id = QA_READY_JITR_ID
+	else
+		qa_transition_id = QA_READY_ID
+	end
+
 	i = 0;
 	while (i < jira_issues.length) do
 		jira_issue = jira_issues[i].join
-		transition_issue jira_issue, QA_READY_ID, user, pull_request, "opened"
+		transition_issue jira_issue, qa_transition_id, user, pull_request, "opened"
 		i+=1
 	end
 end
@@ -188,19 +201,36 @@ def update_development_info_jira (jira_issues, name, type)
 	#"customfield_10123" = pull_request
 end
 
+# Accepts 1 Jira issue at a time
+# Transitions the issue to the transition ID "update_to"
+# User is the person who made an action to trigger the transition
+# code_info is an optional array about the code that triggered this event (branches/pull requests)
 def transition_issue (jira_issue, update_to, user, *code_info)
 	url = JIRA_URL + jira_issue + "/transitions"
+
+	puts "code info 0"
+	puts code_info[0]
+	puts "code info 1"
+	puts code_info[1]
+	puts "code info 2"
+	puts code_info[2]
+	puts "update to"
+	puts update_to
+	puts "QA READY JITR"
+	puts QA_READY_JITR_ID
 
 	case update_to
 	when START_PROGRESS_ID
 		puts "I made it here"
 		body = "Progress started when #{user} created branch: #{code_info[0]} in GitHub"
-	when QA_READY_ID
-		if pull_request_info[1] == "opened"
+	when QA_READY_ID, QA_READY_JITR_ID
+		puts "I got here"
+		if code_info[1] == "opened"
 			body = "#{user} opened pull request: [#{code_info[0]["title"]}|#{code_info[0]["html_url"]}]. Ready for QA"
-		elsif pull_request_info[1] == "updated"
+		elsif code_info[1] == "updated"
 			body = "#{user} updated pull request: [#{code_info[0]["title"]}|#{code_info[0]["html_url"]}] with comment: \n bq. #{code_info[2]}"
 		end
+		puts body
 	when QA_PASSED_ID
 		body = "QA passed by #{user} #{JIRA_QA_IMAGE}"
 	when REVIEW_PASSED_ID
@@ -226,7 +256,7 @@ def transition_issue (jira_issue, update_to, user, *code_info)
 
 	#If this is a JITR ticket that's being transitioned, let's make sure we add PRs and Branch names during transition
 	#I would love to find a way to quickly append this JSON to the existing data object to clean this up
-	if code_info[2] == "jitr"
+	if update_to == START_PROGRESS_ID || update_to == QA_READY_JITR_ID
 		#url.concat("?expand=transitions.fields")
 		case update_to
 		when START_PROGRESS_ID
@@ -251,7 +281,7 @@ def transition_issue (jira_issue, update_to, user, *code_info)
 					"id" => "#{update_to}"
 				}
 			}.to_json
-		when QA_READY_ID
+		when QA_READY_JITR_ID
 			field = JIRA_FIELD_PULL_REQUEST
 
 			data = {
@@ -265,7 +295,7 @@ def transition_issue (jira_issue, update_to, user, *code_info)
 					],
 					field => [
 						{
-							"set" => "[#{code_info[0]["title"]}|#{code_info[0]["html_url"]}]"
+							"set" => "#{code_info[0]["html_url"]}"
 						}
 					]
 				},
