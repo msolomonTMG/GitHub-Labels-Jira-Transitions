@@ -1,7 +1,7 @@
 GitHub-Labels-Jira-Transitions
 ==============================
 
-### Transitions
+## Transitions
 - Open --> In Progress
   - Create a branch whose name contains a JIRA ticket
 - In Progress --> In QA
