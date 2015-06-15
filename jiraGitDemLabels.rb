@@ -10,6 +10,9 @@ require './process.rb'
 
 set :server, 'webrick'
 
+set :port, 80
+set :bind, '0.0.0.0'
+
 post '/payload' do
 	#the type of event that happened in GitHub
 	event = request.env["HTTP_X_GITHUB_EVENT"]
@@ -22,7 +25,9 @@ post '/payload' do
 		#the branch that was created
 		branch = push["ref"]
 		#the user who made the action to the pull request
+		puts push["sender"]
 		user = get_user push["sender"]
+		puts user
 		#if this is a JITR ticket, update the JIRA issue with the branch name
 		if push["repository"]["name"] == "JackThreads"
 			jira_issues = get_jira_issues branch, "branch"
