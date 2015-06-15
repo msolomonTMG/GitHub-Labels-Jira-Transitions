@@ -46,12 +46,14 @@ def get_user (user_object)
 	#Example: msolomon@thrillist.com
 	#user_email_domain = thrillist.com
 	#user_email_prefix = msolomon
-	user_email_domain = user_info["email"].split('@')[1]
-	user_email_prefix = user_info["email"].split('@')[0]
+	if user_info["email"] != nil
+		user_email_domain = user_info["email"].split('@')[1]
+		user_email_prefix = user_info["email"].split('@')[0]
 
-	#convert prefix to JIRA markdown or a link to github name if email domain is not thrillist
-	if user_email_domain == "thrillist.com"
-		user = user_email_prefix.insert(0, "[~") + "]"
+		#convert prefix to JIRA markdown or a link to github name if email domain is not thrillist
+		if user_email_domain == "thrillist.com"
+			user = user_email_prefix.insert(0, "[~") + "]"
+		end
 	else
 		user = "["+user_object["login"]+"|"+user_object["html_url"]+"]"
 	end
