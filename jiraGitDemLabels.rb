@@ -25,12 +25,10 @@ post '/payload' do
 		#the branch that was created
 		branch = push["ref"]
 		#the user who made the action to the pull request
-		puts push["sender"]
 		user = get_user push["sender"]
-		puts user
 		#if this is a JITR ticket, update the JIRA issue with the branch name
 		if push["repository"]["name"] == "JackThreads"
-			jira_issues = get_jira_issues branch, "branch"
+			jira_issues = get_jira_issues branch, "branch", true
 			#update_development_info_jira jira_issues, branch, "branch"
 			start_progress jira_issues, branch, user
 		end
@@ -44,14 +42,14 @@ def handle_pull_request (push)
 	user = get_user push["sender"]
 	#the pull request that was actioned on
 	pull_request = push["pull_request"]
-	#jira issues associated with the pull request
-	jira_issues = get_jira_issues pull_request, "pull_request"
 	#is this a JITR issue
 	if push["repository"]["name"] == "JackThreads"
 		is_jitr = true
 	else
 		is_jitr = false
 	end
+	#jira issues associated with the pull request
+	jira_issues = get_jira_issues pull_request, "pull_request", is_jitr
 
 	if action == "labeled"
 		#array of labels applied to this pull request

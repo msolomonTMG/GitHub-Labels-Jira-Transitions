@@ -12,12 +12,21 @@ end
 
 #returns an array of jira issues associated with a pull request
 #if there are more jira issues in the pull request title than in the branch, return the issues in the title
-def get_jira_issues (code, type)
+def get_jira_issues (code, type, is_jitr)
 	if type == "branch"
-		jira_issues = code.scan(/(?:|^)([A-Za-z]+-[0-9]+)(?=|$)/)
+		if is_jitr == true
+			jira_issues = code.scan(/(?:|^)(JITRTHREE-|TOOLSONE-[0-9]+)(?=|$)/)
+		else
+			jira_issues = code.scan(/(?:|^)([A-Za-z]+-[0-9]+)(?=|$)/)
+		end
 	elsif type == "pull_request"
-		issues_in_branch = code["head"]["ref"].scan(/(?:|^)([A-Za-z]+-[0-9]+)(?=|$)/)
-		issues_in_pull_request_title = code["title"].scan(/(?:\s|^)([A-Za-z]+-[0-9]+)(?=\s|$)/)
+		if is_jitr == true
+			issues_in_branch = code["head"]["ref"].scan(/(?:|^)(JITRTHREE-|TOOLSONE-[0-9]+)(?=|$)/)
+			issues_in_pull_request_title = code["title"].scan(/(?:\s|^)([JITRTHREE-|TOOLSONE-[0-9]+)(?=\s|$)/)
+		else
+			issues_in_branch = code["head"]["ref"].scan(/(?:|^)([A-Za-z]+-[0-9]+)(?=|$)/)
+			issues_in_pull_request_title = code["title"].scan(/(?:\s|^)([A-Za-z]+-[0-9]+)(?=\s|$)/)
+		end
 
 		if issues_in_branch.length > issues_in_pull_request_title.length
 			jira_issues = issues_in_branch
