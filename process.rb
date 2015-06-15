@@ -82,6 +82,12 @@ def get_user (user_object)
 		user = "[~jchinthrajah]"
 	when "patrick"
 		user = "[~plange]"
+	when "mvujovic-thrillist"
+		user = "[~mvujovic]"
+	when "mattdoyle"
+		user = "[~matt]"
+	when "laurenashpole"
+		user = "[~lashpole]"
 	end
 
 	return user
@@ -299,5 +305,32 @@ def transition_issue (jira_issue, update_to, user, *code_info)
         :"Content-Type" => "application/json"
     }
    
-	response = RestClient.post( url, data, headers )
+	#figure out if this issue is able to be transitioned to where we want it to go
+	#if we can transition it, post to JIRA, if we can't then don't send anything
+	available_transitions = JSON.parse( RestClient.get( url, headers ) )
+	able_to_transition = is_able_to_transition update_to, available_transitions
+
+	if able_to_transition == true
+		response = RestClient.post( url, data, headers )
+	else
+		puts "cannot transition this ticket"
+	end
+
+end
+
+#returns true if the ticket's available transitions includes the transition that we want to update to
+def is_able_to_transition(update_to, available_transitions)
+	able_to_transition = false
+
+	i = 0
+	while (i < available_transitions["transitions"].length ) do
+		available_transition = available_transitions["transitions"][i]
+		if available_transition["id"] == update_to
+			able_to_transition = true
+			i += available_transitions["transitions"].length
+		end 
+		i += 1
+	end
+
+	return able_to_transition
 end
