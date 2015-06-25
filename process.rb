@@ -15,7 +15,7 @@ end
 def get_jira_issues (code, type, is_jitr)
 	if type == "branch"
 		if is_jitr == true
-			jira_issues = code.scan(/(?:|^)(JITR-[0-9]+|TOOLSONE-[0-9]+)(?=|$)/)
+			jira_issues = code.scan(/(?:|^)(JITRTHREE-[0-9]+|TOOLSONE-[0-9]+)(?=|$)/)
 		else
 			jira_issues = code.scan(/(?:|^)([A-Za-z]+-[0-9]+)(?=|$)/)
 		end
@@ -345,3 +345,4 @@ def is_able_to_transition(update_to, available_transitions)
 
 	return able_to_transition
 end
+
