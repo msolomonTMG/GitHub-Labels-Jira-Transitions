@@ -11,8 +11,8 @@ require './process.rb'
 
 set :server, 'webrick'
 
-#set :port, 80
-#set :bind, '0.0.0.0'
+set :port, 80
+set :bind, '0.0.0.0'
 
 #require models
 Dir[File.dirname(__FILE__) + '/model/*.rb'].each {|file| require file }
