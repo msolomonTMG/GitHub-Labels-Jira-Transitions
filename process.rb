@@ -21,8 +21,8 @@ def get_jira_issues (code, type, is_jitr)
 		end
 	elsif type == "pull_request"
 		if is_jitr == true
-			issues_in_branch = code["head"]["ref"].scan(/(?:|^)(JITR-[0-9]+|TOOLSONE-[0-9]+)(?=|$)/)
-			issues_in_pull_request_title = code["title"].scan(/(?:\s|^)(JITR-[0-9]+|TOOLSONE-[0-9]+)(?=\s|$)/)
+			issues_in_branch = code["head"]["ref"].scan(/(?:|^)(JITRTHREE-[0-9]+|TOOLSONE-[0-9]+)(?=|$)/)
+			issues_in_pull_request_title = code["title"].scan(/(?:\s|^)(JITRTHREE-[0-9]+|TOOLSONE-[0-9]+)(?=\s|$)/)
 		else
 			issues_in_branch = code["head"]["ref"].scan(/(?:|^)([A-Za-z]+-[0-9]+)(?=|$)/)
 			issues_in_pull_request_title = code["title"].scan(/(?:\s|^)([A-Za-z]+-[0-9]+)(?=\s|$)/)
