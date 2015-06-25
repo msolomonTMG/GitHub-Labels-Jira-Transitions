@@ -10,8 +10,8 @@ def log_event (user, action, code, type, time)
 			:user_avatar_url => user["avatar_url"],
 			:user_url => user["html_url"],
 			:action => action,
-			:code_title => code["title"],
-			:code_url => code["html_url"],
+			:code_title => code["pull_request"]["title"],
+			:code_url => code["pull_request"]["html_url"],
 			:time => time
 		)
 	elsif type == "branch"

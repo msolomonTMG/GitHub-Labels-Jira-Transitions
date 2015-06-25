@@ -64,7 +64,9 @@
 		<!-- Initiate Data Table -->
 		<script>
 			$(document).ready(function() {
-				$('#logs').DataTable();
+				$('#logs').DataTable( {
+					"order": [[ 4, "desc" ]]
+				});
 			} );
 		</script>
 	</body>
