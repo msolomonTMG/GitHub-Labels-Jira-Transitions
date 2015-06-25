@@ -5,13 +5,24 @@
 require 'sinatra'
 require 'json'
 require 'rest-client'
+require 'data_mapper'
 require './config.rb'
 require './process.rb'
 
 set :server, 'webrick'
 
-set :port, 80
-set :bind, '0.0.0.0'
+#set :port, 80
+#set :bind, '0.0.0.0'
+
+#require models
+Dir[File.dirname(__FILE__) + '/model/*.rb'].each {|file| require file }
+
+#require controllers
+Dir[File.dirname(__FILE__) + '/controller/*.rb'].each {|file| require file }
+
+#load up the database
+DataMapper.setup(:default, "sqlite3://#{Dir.pwd}/my.db")
+DataMapper.auto_upgrade!
 
 post '/payload' do
 	#the type of event that happened in GitHub
@@ -27,10 +38,12 @@ post '/payload' do
 		#the user who made the action to the pull request
 		user = get_user push["sender"]
 		#if this is a JITR ticket, update the JIRA issue with the branch name
-		if push["repository"]["name"] == "JackThreads"
+		if push["repository"]["name"] == "jvaca"
 			jira_issues = get_jira_issues branch, "branch", true
 			#update_development_info_jira jira_issues, branch, "branch"
 			start_progress jira_issues, branch, user
+			#log this event
+			log_event push["sender"], "branch created", push, "branch", Time.now
 		end
 	end
 end
@@ -43,7 +56,7 @@ def handle_pull_request (push)
 	#the pull request that was actioned on
 	pull_request = push["pull_request"]
 	#is this a JITR issue
-	if push["repository"]["name"] == "JackThreads"
+	if push["repository"]["name"] == "jvaca"
 		is_jitr = true
 	else
 		is_jitr = false
@@ -69,4 +82,7 @@ def handle_pull_request (push)
 		#move ticket(s) to in QA testing and comment on the ticket(s)
 		start_qa jira_issues, pull_request, user, is_jitr
 	end
+	
+	#log this event
+	log_event push["sender"], "pull reqeuest #{action}", push, "pull_request", Time.now
 end
