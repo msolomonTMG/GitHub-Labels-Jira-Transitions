@@ -38,7 +38,7 @@ post '/payload' do
 		#the user who made the action to the pull request
 		user = get_user push["sender"]
 		#if this is a JITR ticket, update the JIRA issue with the branch name
-		if push["repository"]["name"] == "jvaca"
+		if push["repository"]["name"] == "JackThreads"
 			jira_issues = get_jira_issues branch, "branch", true
 			#update_development_info_jira jira_issues, branch, "branch"
 			start_progress jira_issues, branch, user
@@ -56,7 +56,7 @@ def handle_pull_request (push)
 	#the pull request that was actioned on
 	pull_request = push["pull_request"]
 	#is this a JITR issue
-	if push["repository"]["name"] == "jvaca"
+	if push["repository"]["name"] == "JackThreads"
 		is_jitr = true
 	else
 		is_jitr = false
