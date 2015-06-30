@@ -84,5 +84,5 @@ def handle_pull_request (push)
 	end
 	
 	#log this event
-	log_event push["sender"], "pull reqeuest #{action}", push, "pull_request", Time.now
+	log_event push["sender"], "pull request #{action}", push, "pull_request", Time.now
 end
