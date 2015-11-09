@@ -53,6 +53,12 @@ post '/jira_webhook' do
 	push = JSON.parse(request.body.read)
     epic = push["issue"]["customfield_10220"]
     user = "[~#{push['user']['key']}]"
+
+    puts "EPIC"
+    puts epic
+
+    puts "USER"
+    puts user
     
     jira_issues = Array.new
     jira_issues.push(epic)
