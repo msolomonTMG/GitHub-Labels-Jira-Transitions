@@ -185,13 +185,21 @@ def start_qa (jira_issues, pull_request, user, is_jitr)
 	end
 end
 
-def start_progress (jira_issues, branch, user)
+def start_progress (jira_issues, user, *branch)
 	i = 0;
-	while (i < jira_issues.length) do
-		jira_issue = jira_issues[i].join
-		transition_issue jira_issue, START_PROGRESS_ID, user, branch, "created", "jitr"
-		i+=1
-	end
+	if branch[0] != nil
+		while (i < jira_issues.length) do
+			jira_issue = jira_issues[i].join
+			transition_issue jira_issue, START_PROGRESS_ID, user, branch[0], "created", "jitr"
+			i+=1
+		end
+	else
+		while (i < jira_issues.length) do
+			jira_issue = jira_issues[i].join
+			transition_issue jira_issue, START_PROGRESS_ID, user
+			i+=1
+		end
+	end	
 end
 
 #add branch name or pull request name to jira issues
