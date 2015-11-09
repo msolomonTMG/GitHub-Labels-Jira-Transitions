@@ -52,7 +52,7 @@ post '/jira_webhook' do
 	#the JSON that the JIRA webhook sends us
 	push 		= JSON.parse(request.body.read)
     epic 		= push["issue"]["fields"]["customfield_10220"]
-    transition 	= push["transition"]["id"]
+    transition 	= push["transition"]["transitionId"]
     user 		= "[~#{push['user']['key']}]"
     
     jira_issues = Array.new
