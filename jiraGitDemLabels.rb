@@ -53,7 +53,11 @@ post '/jira_webhook' do
 	push = JSON.parse(request.body.read)
     epic = push["issue"]["customfield_10220"]
     user = "[~#{push['user']['key']}]"
-    start_progress epic, user
+    
+    jira_issues = Array.new
+    jira_issues.push(epic)
+    
+    start_progress jira_issues, user
 end
 
 def handle_pull_request (push)
