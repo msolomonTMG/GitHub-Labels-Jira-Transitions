@@ -50,14 +50,20 @@ end
 
 post '/jira_webhook' do
 	#the JSON that the JIRA webhook sends us
-	push = JSON.parse(request.body.read)
-    epic = push["issue"]["fields"]["customfield_10220"]
-    user = "[~#{push['user']['key']}]"
+	push 		= JSON.parse(request.body.read)
+    epic 		= push["issue"]["fields"]["customfield_10220"]
+    transition 	= push["transition"]["id"]
+    user 		= "[~#{push['user']['key']}]"
     
     jira_issues = Array.new
     jira_issues.push(epic)
     
-    start_progress jira_issues, user
+    if transition.to_s == START_PROGRESS_ID
+    	start_progress jira_issues, user
+    elsif transition.to_s == QA_READY_ID
+    	start_qa_for_epic epic, user
+    end
+    	
 end
 
 def handle_pull_request (push)

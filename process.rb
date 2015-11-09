@@ -185,12 +185,16 @@ def start_qa (jira_issues, pull_request, user, is_jitr)
 	end
 end
 
+def start_qa_for_epic (epic, user)
+	transition_issue epic, QA_READY_ID, user
+end
+
 def start_progress (jira_issues, user, *branch)
 	i = 0;
 	if branch[0] != nil
 		while (i < jira_issues.length) do
 			jira_issue = jira_issues[i].join
-			transition_issue jira_issue, START_PROGRESS_ID, user, branch[0], "created", "jitr"
+			transition_issue jira_issue, START_PROGRESS_JITR_ID, user, branch[0], "created", "jitr"
 			i+=1
 		end
 	else
@@ -247,7 +251,9 @@ def transition_issue (jira_issue, update_to, user, *code_info)
 	when START_PROGRESS_ID
 		body = "Progress started when #{user} began working on a story in this epic"
 	when QA_READY_ID, QA_READY_JITR_ID
-		if code_info[1] == "opened"
+		if code_info[0] == nil
+			body = "A story for this epic has been submitted to QA by #{user}."
+		elsif code_info[1] == "opened"
 			body = "#{user} opened pull request: [#{code_info[0]["title"]}|#{code_info[0]["html_url"]}]. Ready for QA"
 		elsif code_info[1] == "updated"
 			body = "#{user} updated pull request: [#{code_info[0]["title"]}|#{code_info[0]["html_url"]}] with comment: \n bq. #{code_info[2]}"
