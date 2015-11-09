@@ -195,7 +195,7 @@ def start_progress (jira_issues, user, *branch)
 		end
 	else
 		while (i < jira_issues.length) do
-			jira_issue = jira_issues[i].join
+			jira_issue = jira_issues[i]
 			transition_issue jira_issue, START_PROGRESS_ID, user
 			i+=1
 		end
