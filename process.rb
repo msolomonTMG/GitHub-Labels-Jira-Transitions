@@ -242,8 +242,10 @@ def transition_issue (jira_issue, update_to, user, *code_info)
 	url = JIRA_URL + jira_issue + "/transitions"
 
 	case update_to
-	when START_PROGRESS_ID
+	when START_PROGRESS_JITR_ID
 		body = "Progress started when #{user} created branch: #{code_info[0]} in GitHub"
+	when START_PROGRESS_ID
+		body = "Progress started when #{user} began working on a story in this epic"
 	when QA_READY_ID, QA_READY_JITR_ID
 		if code_info[1] == "opened"
 			body = "#{user} opened pull request: [#{code_info[0]["title"]}|#{code_info[0]["html_url"]}]. Ready for QA"
@@ -275,10 +277,10 @@ def transition_issue (jira_issue, update_to, user, *code_info)
 
 	#If this is a JITR ticket that's being transitioned, let's make sure we add PRs and Branch names during transition
 	#I would love to find a way to quickly append this JSON to the existing data object to clean this up
-	if update_to == START_PROGRESS_ID || update_to == QA_READY_JITR_ID
+	if update_to == START_PROGRESS_JITR_ID || update_to == QA_READY_JITR_ID
 		#url.concat("?expand=transitions.fields")
 		case update_to
-		when START_PROGRESS_ID
+		when START_PROGRESS_JITR_ID
 			field = JIRA_FIELD_BRANCH
 
 			data = {
