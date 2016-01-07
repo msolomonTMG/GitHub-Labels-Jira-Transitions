@@ -15,14 +15,14 @@ end
 def get_jira_issues (code, type, is_jitr)
 	if type == "branch"
 		if is_jitr == true
-			jira_issues = code.scan(/(?:|^)(JITR.+-[0-9]+|TOOLSONE-[0-9]+)(?=|$)/)
+			jira_issues = code.scan(/(?:|^)(JTQ.+-[0-9]+|JRQ.+-[0-9]+|JCEQ.+-[0-9]+|JITR.+-[0-9]+|TOOLSONE-[0-9]+)(?=|$)/)
 		else
 			jira_issues = code.scan(/(?:|^)([A-Za-z]+-[0-9]+)(?=|$)/)
 		end
 	elsif type == "pull_request"
 		if is_jitr == true
-			issues_in_branch = code["head"]["ref"].scan(/(?:|^)(JITR.+-[0-9]+|TOOLSONE-[0-9]+)(?=|$)/)
-			issues_in_pull_request_title = code["title"].scan(/(?:\s|^)(JITR.+-[0-9]+|TOOLSONE-[0-9]+)(?=\s|$)/)
+			issues_in_branch = code["head"]["ref"].scan(/(?:|^)(JTQ.+-[0-9]+|JRQ.+-[0-9]+|JCEQ.+-[0-9]+|JITR.+-[0-9]+|TOOLSONE-[0-9]+)(?=|$)/)
+			issues_in_pull_request_title = code["title"].scan(/(?:\s|^)(JTQ.+-[0-9]+|JRQ.+-[0-9]+|JCEQ.+-[0-9]+|JITR.+-[0-9]+|TOOLSONE-[0-9]+)(?=\s|$)/)
 		else
 			issues_in_branch = code["head"]["ref"].scan(/(?:|^)([A-Za-z]+-[0-9]+)(?=|$)/)
 			issues_in_pull_request_title = code["title"].scan(/(?:\s|^)([A-Za-z]+-[0-9]+)(?=\s|$)/)
