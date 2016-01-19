@@ -185,13 +185,25 @@ def start_qa (jira_issues, pull_request, user, is_jitr)
 	end
 end
 
-def start_progress (jira_issues, branch, user)
+def start_qa_for_epic (epic, user)
+	transition_issue epic, QA_READY_ID, user
+end
+
+def start_progress (jira_issues, user, *branch)
 	i = 0;
-	while (i < jira_issues.length) do
-		jira_issue = jira_issues[i].join
-		transition_issue jira_issue, START_PROGRESS_ID, user, branch, "created", "jitr"
-		i+=1
-	end
+	if branch[0] != nil
+		while (i < jira_issues.length) do
+			jira_issue = jira_issues[i].join
+			transition_issue jira_issue, START_PROGRESS_JITR_ID, user, branch[0], "created", "jitr"
+			i+=1
+		end
+	else
+		while (i < jira_issues.length) do
+			jira_issue = jira_issues[i]
+			transition_issue jira_issue, START_PROGRESS_ID, user
+			i+=1
+		end
+	end	
 end
 
 #add branch name or pull request name to jira issues
@@ -243,10 +255,14 @@ def transition_issue (jira_issue, update_to, user, *code_info)
 	end
 
 	case update_to
-	when START_PROGRESS_ID
+	when START_PROGRESS_JITR_ID
 		body = "Progress started when #{user} created branch: #{code_info[0]} in GitHub"
+	when START_PROGRESS_ID
+		body = "Progress started when #{user} began working on a story in this epic"
 	when QA_READY_ID, QA_READY_JITR_ID
-		if code_info[1] == "opened"
+		if code_info[0] == nil
+			body = "A story for this epic has been submitted to QA by #{user}."
+		elsif code_info[1] == "opened"
 			body = "#{user} opened pull request: [#{code_info[0]["title"]}|#{code_info[0]["html_url"]}]. Ready for QA"
 		elsif code_info[1] == "updated"
 			body = "#{user} updated pull request: [#{code_info[0]["title"]}|#{code_info[0]["html_url"]}] with comment: \n bq. #{code_info[2]}"
@@ -276,10 +292,10 @@ def transition_issue (jira_issue, update_to, user, *code_info)
 
 	#If this is a JITR ticket that's being transitioned, let's make sure we add PRs and Branch names during transition
 	#I would love to find a way to quickly append this JSON to the existing data object to clean this up
-	if update_to == START_PROGRESS_ID || update_to == QA_READY_JITR_ID
+	if update_to == START_PROGRESS_JITR_ID || update_to == QA_READY_JITR_ID
 		#url.concat("?expand=transitions.fields")
 		case update_to
-		when START_PROGRESS_ID
+		when START_PROGRESS_JITR_ID
 			field = JIRA_FIELD_BRANCH
 
 			data = {
