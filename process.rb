@@ -216,7 +216,12 @@ def update_development_info_jira (jira_issues, name, type)
 	        :"Content-Type" => "application/json"
 	    }
 
-	    url = JIRA_URL + jira_issue
+	    if jira_issue =~ /(?:|^)(JQWE-[0-9]+|PQ-[0-9]+|JTQ-[0-9]+|JRQ-[0-9]+|JCEQ-[0-9]+|JITR.+-[0-9]+|TOOLSONE-[0-9]+)(?=|$)/i
+			url = JACKTHREADS_JIRA_URL + jira_issue
+		else 
+			url = THRILLIST_JIRA_URL + jira_issue
+		end
+
 		response = RestClient.put( url, data, headers )
 
 		i+=1
@@ -231,7 +236,11 @@ end
 # User is the person who made an action to trigger the transition
 # code_info is an optional array about the code that triggered this event (branches/pull requests)
 def transition_issue (jira_issue, update_to, user, *code_info)
-	url = JIRA_URL + jira_issue + "/transitions"
+    if jira_issue =~ /(?:|^)(JQWE-[0-9]+|PQ-[0-9]+|JTQ-[0-9]+|JRQ-[0-9]+|JCEQ-[0-9]+|JITR.+-[0-9]+|TOOLSONE-[0-9]+)(?=|$)/i
+		url = JACKTHREADS_JIRA_URL + jira_issue + "/transitions"
+	else 
+		url = THRILLIST_JIRA_URL + jira_issue + "/transitions"
+	end
 
 	case update_to
 	when START_PROGRESS_ID
