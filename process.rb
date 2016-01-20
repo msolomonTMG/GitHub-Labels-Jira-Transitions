@@ -107,6 +107,8 @@ def get_user (user_object)
 		user = "[~lukemonaco]"
 	when "schuylerpenny"
 		user = "[~spenny]"
+	when "rhinoray29"
+		user = "[~rshatkin]"
 	end
 
 	return user
