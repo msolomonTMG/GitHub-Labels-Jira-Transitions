@@ -41,11 +41,29 @@ post '/payload' do
 		if push["repository"]["name"] == "JackThreads"
 			jira_issues = get_jira_issues branch, "branch", true
 			#update_development_info_jira jira_issues, branch, "branch"
-			start_progress jira_issues, branch, user
+			start_progress jira_issues, user, branch
 			#log this event
 			log_event push["sender"], "branch created", push, "branch", Time.now
 		end
 	end
+end
+
+post '/jira_webhook' do
+	#the JSON that the JIRA webhook sends us
+	push 		= JSON.parse(request.body.read)
+    epic 		= push["issue"]["fields"]["customfield_10220"]
+    transition 	= push["transition"]["transitionId"]
+    user 		= "[~#{push['user']['key']}]"
+    
+    jira_issues = Array.new
+    jira_issues.push(epic)
+    
+    if transition.to_s == START_PROGRESS_ID
+    	start_progress jira_issues, user
+    elsif transition.to_s == QA_READY_ID
+    	start_qa_for_epic epic, user
+    end
+    	
 end
 
 def handle_pull_request (push)
