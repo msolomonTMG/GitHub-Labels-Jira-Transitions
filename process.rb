@@ -256,8 +256,11 @@ end
 # User is the person who made an action to trigger the transition
 # code_info is an optional array about the code that triggered this event (branches/pull requests)
 def transition_issue (jira_issue, update_to, user, *code_info)
-    if jira_issue =~ /(?:|^)(JQWE-[0-9]+|PQ-[0-9]+|JTQ-[0-9]+|JRQ-[0-9]+|JCEQ-[0-9]+|JITR.+-[0-9]+|TOOLSONE-[0-9]+)(?=|$)/i
+    if jira_issue =~ /(?:|^)(JTQ-[0-9]+|JRQ-[0-9]+|JCEQ-[0-9]+|JITR.+-[0-9]+|TOOLSONE-[0-9]+)(?=|$)/i
 		url = JACKTHREADS_JIRA_URL + jira_issue + "/transitions"
+	elsif jira_issue =~ /(?:|^)(JQWE-[0-9]+|PQ-[0-9]+)(?=|$)/i
+		# JackThreads front end does not want these transitions anymore
+		return false  
 	else 
 		url = THRILLIST_JIRA_URL + jira_issue + "/transitions"
 	end
