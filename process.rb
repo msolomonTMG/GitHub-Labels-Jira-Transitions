@@ -51,7 +51,7 @@ end
 #some user have special treatment because of the way they are setup
 def get_user (user_object)
 	user_info = JSON.parse(RestClient.get( user_object["url"], {:params => {:access_token => GIT_HUB_TOKEN}, :accept => :json} ) )
-	
+
 	#Example: msolomon@thrillist.com
 	#user_email_domain = thrillist.com
 	#user_email_prefix = msolomon
@@ -195,6 +195,19 @@ def start_qa (jira_issues, pull_request, user, is_jitr)
 	end
 end
 
+#loops through all of the issues given as a parameter and sends them to the transition function
+#need to know if a batch of tickets belongs to JITR team because they use different transition IDs
+def start_code_review (jira_issues, pull_request, user)
+	code_review_transition_id = CODE_REVIEW_ID
+
+	i = 0;
+	while (i < jira_issues.length) do
+		jira_issue = jira_issues[i].join
+		transition_issue jira_issue, code_review_transition_id, user, pull_request, "opened"
+		i+=1
+	end
+end
+
 def start_qa_for_epic (epic, user)
 	transition_issue epic, QA_READY_ID, user
 end
@@ -213,7 +226,7 @@ def start_progress (jira_issues, user, *branch)
 			transition_issue jira_issue, START_PROGRESS_ID, user
 			i+=1
 		end
-	end	
+	end
 end
 
 #add branch name or pull request name to jira issues
@@ -233,14 +246,14 @@ def update_development_info_jira (jira_issues, name, type)
 			}
 		}.to_json
 
-		headers = { 
+		headers = {
 	        :"Authorization" => "Basic #{JIRA_TOKEN}",
 	        :"Content-Type" => "application/json"
 	    }
 
 	    if jira_issue =~ /(?:|^)(JQWE-[0-9]+|PQ-[0-9]+|JTQ-[0-9]+|JRQ-[0-9]+|JCEQ-[0-9]+|JITR.+-[0-9]+|TOOLSONE-[0-9]+)(?=|$)/i
 			url = JACKTHREADS_JIRA_URL + jira_issue
-		else 
+		else
 			url = THRILLIST_JIRA_URL + jira_issue
 		end
 
@@ -262,8 +275,8 @@ def transition_issue (jira_issue, update_to, user, *code_info)
 		url = JACKTHREADS_JIRA_URL + jira_issue + "/transitions"
 	elsif jira_issue =~ /(?:|^)(JQWE-[0-9]+|PQ-[0-9]+)(?=|$)/i
 		# JackThreads front end does not want these transitions anymore
-		return false  
-	else 
+		return false
+	else
 		url = THRILLIST_JIRA_URL + jira_issue + "/transitions"
 	end
 
@@ -272,6 +285,8 @@ def transition_issue (jira_issue, update_to, user, *code_info)
 		body = "Progress started when #{user} created branch: #{code_info[0]} in GitHub"
 	when START_PROGRESS_ID
 		body = "Progress started when #{user} began working on a story in this epic"
+	when CODE_REVIEW_ID
+		body = "#{user} opened pull request: [#{code_info[0]["title"]}|#{code_info[0]["html_url"]}]. Ready for Code Review"
 	when QA_READY_ID, QA_READY_JITR_ID
 		if code_info[0] == nil
 			body = "A story for this epic has been submitted to QA by #{user}."
@@ -294,7 +309,7 @@ def transition_issue (jira_issue, update_to, user, *code_info)
 				{
 					"add" => {
 						"body" => body
-					}	
+					}
 				}
 			]
 		},
@@ -317,7 +332,7 @@ def transition_issue (jira_issue, update_to, user, *code_info)
 						{
 							"add" => {
 								"body" => body
-							}	
+							}
 						}
 					],
 					field => [
@@ -339,7 +354,7 @@ def transition_issue (jira_issue, update_to, user, *code_info)
 						{
 							"add" => {
 								"body" => body
-							}	
+							}
 						}
 					],
 					field => [
@@ -357,11 +372,11 @@ def transition_issue (jira_issue, update_to, user, *code_info)
 		data.to_json
 	end
 
-	headers = { 
+	headers = {
         :"Authorization" => "Basic #{JIRA_TOKEN}",
         :"Content-Type" => "application/json"
     }
-   
+
 	#figure out if this issue is able to be transitioned to where we want it to go
 	#if we can transition it, post to JIRA, if we can't then don't send anything
 	available_transitions = JSON.parse( RestClient.get( url, headers ) )
@@ -385,10 +400,9 @@ def is_able_to_transition(update_to, available_transitions)
 		if available_transition["id"] == update_to
 			able_to_transition = true
 			i += available_transitions["transitions"].length
-		end 
+		end
 		i += 1
 	end
 
 	return able_to_transition
 end
-
