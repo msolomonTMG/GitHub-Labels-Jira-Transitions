@@ -1,6 +1,6 @@
 # Author: Mike Solomon
 # This app flips Jira statuses based on applying labels to Github pull requests
-# 
+#
 
 require 'sinatra'
 require 'json'
@@ -54,16 +54,16 @@ post '/jira_webhook' do
     epic 		= push["issue"]["fields"]["customfield_10220"]
     transition 	= push["transition"]["transitionId"]
     user 		= "[~#{push['user']['key']}]"
-    
+
     jira_issues = Array.new
     jira_issues.push(epic)
-    
+
     if transition.to_s == START_PROGRESS_ID
     	start_progress jira_issues, user
     elsif transition.to_s == QA_READY_ID
     	start_qa_for_epic epic, user
     end
-    	
+
 end
 
 def handle_pull_request (push)
@@ -89,7 +89,7 @@ def handle_pull_request (push)
 		current_label = push["label"]["name"]
 		#loop through all of the tickets and decide what to do based on the labels of this pull request
 		update_label_jira jira_issues, current_label, pull_request_labels, user
-	
+
 	elsif action == "synchronize"
 		#get latest commit message on pull request
 		latest_commit_message = get_latest_commit_message pull_request, push["repository"]["commits_url"]
@@ -97,10 +97,14 @@ def handle_pull_request (push)
 		update_message_jira jira_issues, pull_request, latest_commit_message, user, is_jitr
 
 	elsif action == "opened"
-		#move ticket(s) to in QA testing and comment on the ticket(s)
-		start_qa jira_issues, pull_request, user, is_jitr
+		if (is_jitr === true)
+			#move ticket(s) to in QA testing and comment on the ticket(s)
+			start_qa jira_issues, pull_request, user, is_jitr
+		else
+			start_code_review jira_issues, pull_request, user, is_jitr
+		end
 	end
-	
+
 	#log this event
 	log_event push["sender"], "pull request #{action}", push, "pull_request", Time.now
 end
