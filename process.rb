@@ -296,10 +296,10 @@ def transition_issue (jira_issue, update_to, user, *code_info)
 			body = "#{user} updated pull request: [#{code_info[0]["title"]}|#{code_info[0]["html_url"]}] with comment: \n bq. #{code_info[2]}"
 		end
 	when QA_READY_ID
-		if code_info[0] == nil
-			body = "Code review passed by #{user} #{JIRA_REVIEW_IMAGE}"
-		elsif code_info[1] == "updated"
+		if code_info[1] == "updated"
 			body = "#{user} updated pull request: [#{code_info[0]["title"]}|#{code_info[0]["html_url"]}] with comment: \n bq. #{code_info[2]}"
+		else
+			body = "Code review passed by #{user} #{JIRA_REVIEW_IMAGE}"
 		end
 	when QA_PASSED_ID
 		body = "QA passed by #{user} #{JIRA_QA_IMAGE}"
