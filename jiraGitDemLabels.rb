@@ -101,7 +101,7 @@ def handle_pull_request (push)
 			#move ticket(s) to in QA testing and comment on the ticket(s)
 			start_qa jira_issues, pull_request, user, is_jitr
 		else
-			start_code_review jira_issues, pull_request, user, is_jitr
+			start_code_review jira_issues, pull_request, user
 		end
 	end
 
