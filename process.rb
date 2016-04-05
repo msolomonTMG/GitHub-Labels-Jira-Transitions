@@ -136,7 +136,7 @@ def update_label_jira (jira_issues, current_label, pull_request_labels, user)
 			end
 		elsif current_label == "reviewed" && jira_issue != nil
 			#move to reveiwed by user
-			transition_issue jira_issue, REVIEW_PASSED_ID, user
+			transition_issue jira_issue, QA_READY_ID, user
 			#if this ticket is also QAed, move to deploy ready
 			if pull_request_labels.find {|x| x["name"] == "QAed"} != nil
 				transition_issue jira_issue, DEPLOY_READY_ID, user
