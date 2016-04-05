@@ -287,11 +287,17 @@ def transition_issue (jira_issue, update_to, user, *code_info)
 		body = "Progress started when #{user} began working on a story in this epic"
 	when CODE_REVIEW_ID
 		body = "#{user} opened pull request: [#{code_info[0]["title"]}|#{code_info[0]["html_url"]}]. Ready for Code Review"
-	when QA_READY_ID, QA_READY_JITR_ID
+	when QA_READY_JITR_ID
 		if code_info[0] == nil
 			body = "A story for this epic has been submitted to QA by #{user}."
 		elsif code_info[1] == "opened"
 			body = "#{user} opened pull request: [#{code_info[0]["title"]}|#{code_info[0]["html_url"]}]. Ready for QA"
+		elsif code_info[1] == "updated"
+			body = "#{user} updated pull request: [#{code_info[0]["title"]}|#{code_info[0]["html_url"]}] with comment: \n bq. #{code_info[2]}"
+		end
+	when QA_READY_ID
+		if code_info[0] == nil
+			body = "Code review passed by #{user} #{JIRA_REVIEW_IMAGE}"
 		elsif code_info[1] == "updated"
 			body = "#{user} updated pull request: [#{code_info[0]["title"]}|#{code_info[0]["html_url"]}] with comment: \n bq. #{code_info[2]}"
 		end
